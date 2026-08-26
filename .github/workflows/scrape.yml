@@ -1,0 +1,40 @@
+name: Scrape oslusiadas.org
+
+# Runs the scraper on a GitHub runner (which has outbound network access) and
+# commits the resulting texts and JSON data back to the branch.
+
+on:
+  workflow_dispatch:
+    inputs:
+      cantos:
+        description: 'Cantos to scrape, e.g. "1-10" or "1,3,7"'
+        default: '1-10'
+        required: true
+      delay:
+        description: 'Seconds to wait between requests'
+        default: '0.5'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Scrape the estrofes
+        run: python3 scripts/scrape.py --cantos "${{ inputs.cantos }}" --delay "${{ inputs.delay }}"
+      - name: Rebuild the site
+        run: python3 scripts/build_site.py
+      - name: Commit the texts
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add texts docs
+          if git diff --staged --quiet; then
+            echo "Nothing changed."
+          else
+            git commit -m "Scrape estrofes for cantos ${{ inputs.cantos }}"
+            git push
+          fi

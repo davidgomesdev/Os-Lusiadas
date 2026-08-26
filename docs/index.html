@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Os Lusíadas — Luís de Camões</title>
+<meta name="description" content="Os Lusíadas, de Luís de Camões, em leitor de estrofes canto a canto.">
+<link rel="stylesheet" href="assets/reader.css">
+</head>
+<body>
+<main class="home">
+  <h1>Os Lusíadas</h1>
+  <p class="author">Luís de Camões &middot; 1572 &middot; textos por recolher</p>
+  <a class="resume" id="resume" href="#" hidden>Continuar a leitura<small id="resume-where"></small></a>
+  <ul class="cantos">
+  <li><a href="canto-1.html"><span class="num">I</span><span>Canto I</span><span class="meta">por recolher</span></a></li>
+  <li><a href="canto-2.html"><span class="num">II</span><span>Canto II</span><span class="meta">por recolher</span></a></li>
+  <li><a href="canto-3.html"><span class="num">III</span><span>Canto III</span><span class="meta">por recolher</span></a></li>
+  <li><a href="canto-4.html"><span class="num">IV</span><span>Canto IV</span><span class="meta">por recolher</span></a></li>
+  <li><a href="canto-5.html"><span class="num">V</span><span>Canto V</span><span class="meta">por recolher</span></a></li>
+  <li><a href="canto-6.html"><span class="num">VI</span><span>Canto VI</span><span class="meta">por recolher</span></a></li>
+  <li><a href="canto-7.html"><span class="num">VII</span><span>Canto VII</span><span class="meta">por recolher</span></a></li>
+  <li><a href="canto-8.html"><span class="num">VIII</span><span>Canto VIII</span><span class="meta">por recolher</span></a></li>
+  <li><a href="canto-9.html"><span class="num">IX</span><span>Canto IX</span><span class="meta">por recolher</span></a></li>
+  <li><a href="canto-10.html"><span class="num">X</span><span>Canto X</span><span class="meta">por recolher</span></a></li>
+  </ul>
+</main>
+<script>
+(function () {
+  var raw;
+  try { raw = localStorage.getItem('lusiadas:last'); } catch (e) { return; }
+  if (!raw) return;
+  try {
+    var last = JSON.parse(raw);
+    if (!last || !last.canto) return;
+    var link = document.getElementById('resume');
+    link.href = 'canto-' + last.canto + '.html#' + last.estrofe;
+    document.getElementById('resume-where').textContent =
+      'Canto ' + last.roman + ', estrofe ' + last.estrofe;
+    link.hidden = false;
+  } catch (e) { /* ignore a corrupt checkpoint */ }
+})();
+</script>
+</body>
+</html>
