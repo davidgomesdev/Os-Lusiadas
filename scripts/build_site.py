@@ -1,16 +1,25 @@
 #!/usr/bin/env python3
 """Generate the GitHub Pages site: one reader page per canto, plus the index.
 
-Reads docs/data/index.json (written by scrape.py) for the estrofe counts;
-falls back to listing all ten cantos without counts if it is missing.
+Reads docs/data/index.json (written by scrape.py) for the estrofe counts and
+docs/data/canto-<n>.json for each canto's opening verse, which labels the canto
+in place of the redundant "Canto I" caption.  Falls back to listing all ten
+cantos bare if the data is missing.
 """
 
+import html
 import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 DOCS = ROOT / "docs"
 ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"]
+
+PORTRAIT = (
+    '<img class="portrait" src="assets/camoes.jpg" width="96" height="96" '
+    'alt="Retrato de Luís de Camões, por Fernão Gomes" '
+    'title="Luís de Camões, por Fernão Gomes (séc. XVI)">'
+)
 
 HEAD = """<!doctype html>
 <html lang="pt">
@@ -26,7 +35,8 @@ HEAD = """<!doctype html>
 CANTO_BODY = """<body class="reader" data-canto="{n}" data-roman="{roman}">
 <header class="bar">
   <a href="./">&larr; Cantos</a>
-  <span class="title">Canto {roman}</span>
+  <span class="mark" aria-label="Canto {roman}">{roman}</span>
+  <span class="incipit">{incipit}</span>
   <button id="jump" type="button">Ir para&hellip;</button>
   <span class="pos" id="pos">&hellip;</span>
 </header>
@@ -41,49 +51,83 @@ CANTO_BODY = """<body class="reader" data-canto="{n}" data-roman="{roman}">
 """
 
 
-def build_canto(n, roman):
-    html = HEAD.format(
+def canto_data():
+    """Per-canto {count, incipit}, read from whatever the scraper left behind."""
+    info = {}
+    index_file = DOCS / "data" / "index.json"
+    if index_file.exists():
+        for entry in json.loads(index_file.read_text(encoding="utf-8")).get("cantos", []):
+            info[entry["canto"]] = {"count": entry.get("count"), "incipit": ""}
+    for n in range(1, len(ROMAN) + 1):
+        path = DOCS / "data" / f"canto-{n}.json"
+        if not path.exists():
+            continue
+        estrofes = json.loads(path.read_text(encoding="utf-8")).get("estrofes") or []
+        if estrofes and estrofes[0].get("lines"):
+            info.setdefault(n, {"count": len(estrofes), "incipit": ""})
+            # Some cantos open mid-speech; drop the dangling quote mark.
+            first = estrofes[0]["lines"][0].lstrip('"\u00ab\u201c ')
+            info[n]["incipit"] = first.rstrip(" ,;:")
+    return info
+
+
+def build_canto(n, roman, incipit):
+    body = CANTO_BODY.format(n=n, roman=roman, incipit=html.escape(incipit))
+    page = HEAD.format(
         title=f"Os Lusíadas — Canto {roman}",
         desc=f"Canto {roman} de Os Lusíadas, de Luís de Camões, num leitor de estrofes.",
         prefix="",
-    ) + CANTO_BODY.format(n=n, roman=roman)
-    (DOCS / f"canto-{n}.html").write_text(html, encoding="utf-8")
+    ) + body
+    (DOCS / f"canto-{n}.html").write_text(page, encoding="utf-8")
 
 
-def build_index(counts):
+def build_index(info):
     items = []
     for i, roman in enumerate(ROMAN, start=1):
-        count = counts.get(i)
+        entry = info.get(i) or {}
+        count = entry.get("count")
+        incipit = entry.get("incipit") or ""
         meta = f"{count} estrofes" if count else "por recolher"
-        items.append(
-            f'  <li><a href="canto-{i}.html"><span class="num">{roman}</span>'
-            f'<span>Canto {roman}</span><span class="meta">{meta}</span></a></li>'
+        label = (
+            f'<span class="incipit">{html.escape(incipit)}&hellip;</span>'
+            if incipit else '<span class="incipit">por recolher</span>'
         )
-    total = sum(counts.values()) if counts else 0
+        items.append(
+            f'  <li><a href="canto-{i}.html">'
+            f'<span class="num" aria-label="Canto {roman}">{roman}</span>'
+            f'{label}<span class="meta">{meta}</span></a></li>'
+        )
+    total = sum(e.get("count") or 0 for e in info.values())
     total_line = f"{total} estrofes" if total else "textos por recolher"
 
-    html = HEAD.format(
+    page = HEAD.format(
         title="Os Lusíadas — Luís de Camões",
         desc="Os Lusíadas, de Luís de Camões, em leitor de estrofes canto a canto.",
         prefix="",
     ) + f"""<body>
 <main class="home">
-  <h1>Os Lusíadas</h1>
-  <p class="author">Luís de Camões &middot; 1572 &middot; {total_line}</p>
+  <div class="masthead">
+    {PORTRAIT}
+    <div>
+      <h1>Os Lusíadas</h1>
+      <p class="author">Luís de Camões &middot; 1572 &middot; {total_line}</p>
+    </div>
+  </div>
   <a class="resume" id="resume" href="#" hidden>Continuar a leitura<small id="resume-where"></small></a>
   <ul class="cantos">
 {chr(10).join(items)}
   </ul>
+  <p class="credit">Retrato de Camões por Fernão Gomes (séc.&nbsp;XVI), via Wikimedia Commons &mdash; domínio público.</p>
 </main>
 <script>
 (function () {{
+  var link = document.getElementById('resume');
   var raw;
   try {{ raw = localStorage.getItem('lusiadas:last'); }} catch (e) {{ return; }}
-  if (!raw) return;
+  if (!raw) return;                     /* nunca leu nada: fica escondido */
   try {{
     var last = JSON.parse(raw);
-    if (!last || !last.canto) return;
-    var link = document.getElementById('resume');
+    if (!last || !last.canto || !last.estrofe) return;
     link.href = 'canto-' + last.canto + '.html#' + last.estrofe;
     document.getElementById('resume-where').textContent =
       'Canto ' + last.roman + ', estrofe ' + last.estrofe;
@@ -94,18 +138,14 @@ def build_index(counts):
 </body>
 </html>
 """
-    (DOCS / "index.html").write_text(html, encoding="utf-8")
+    (DOCS / "index.html").write_text(page, encoding="utf-8")
 
 
 def main():
-    counts = {}
-    index_file = DOCS / "data" / "index.json"
-    if index_file.exists():
-        for entry in json.loads(index_file.read_text(encoding="utf-8")).get("cantos", []):
-            counts[entry["canto"]] = entry.get("count")
+    info = canto_data()
     for i, roman in enumerate(ROMAN, start=1):
-        build_canto(i, roman)
-    build_index(counts)
+        build_canto(i, roman, (info.get(i) or {}).get("incipit", ""))
+    build_index(info)
     (DOCS / ".nojekyll").touch()
     print(f"Built {len(ROMAN)} canto pages + index in {DOCS}")
 

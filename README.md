@@ -42,10 +42,19 @@ Em *Settings → Pages*, escolhe **GitHub Actions** como origem. Cada push para
 
 - Deslizar na horizontal, setas ←/→, espaço, ou tocar nas margens.
 - A estrofe atual fica guardada em `localStorage`, por canto; o índice mostra
-  um atalho *Continuar a leitura*.
+  um atalho *Continuar a leitura* &mdash; escondido enquanto nada foi lido.
+- Cada canto é identificado pelo algarismo romano e pelo primeiro verso, em vez
+  de repetir «Canto I» ao lado do próprio número.
 - O endereço acompanha a estrofe (`canto-1.html#17`), por isso dá para partilhar
   uma estrofe específica.
 - Tema claro/escuro conforme o sistema.
+
+## Créditos da imagem
+
+O retrato na página inicial é o de Luís de Camões por Fernão Gomes (séc. XVI),
+obtido do Wikimedia Commons. A pintura está em domínio público; o ficheiro fica
+em `docs/assets/camoes.jpg`, servido pelo próprio site, para não depender de um
+endereço externo.
 
 ## Fidelidade ao texto de origem
 

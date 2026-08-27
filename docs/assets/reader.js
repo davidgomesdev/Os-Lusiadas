@@ -33,7 +33,7 @@
         return l.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
       }).join('\n');
       return '<article class="page"><div class="estrofe" id="e' + e.n + '">' +
-        '<div class="n">Canto ' + roman + ' &middot; Estrofe ' + e.n + '</div>' +
+        '<div class="n">Estrofe ' + e.n + '</div>' +
         '<p>' + text + '</p></div></article>';
     }).join('');
     track.innerHTML = html;
