@@ -39,11 +39,35 @@
     track.innerHTML = html;
   }
 
+  var pending = 0;  // frames to keep re-asserting a programmatic scroll
+
   function goTo(index, smooth) {
     if (!total) return;
     current = Math.max(0, Math.min(total - 1, index));
-    track.scrollTo({ left: current * track.clientWidth, behavior: smooth ? 'smooth' : 'auto' });
     update();
+    seek(smooth);
+  }
+
+  /* A jump to a far page can be clamped while the pages are still laying out,
+     which would otherwise leave us parked on the first estrofe. Re-assert the
+     target over the next few frames until the track actually lands on it. */
+  function seek(smooth) {
+    pending = 8;
+    (function step() {
+      if (pending <= 0) return;
+      pending--;
+      var w = track.clientWidth;
+      if (w) {
+        var target = current * w;
+        if (Math.abs(track.scrollLeft - target) > 1) {
+          track.scrollTo({ left: target, behavior: smooth ? 'smooth' : 'auto' });
+        } else {
+          pending = 0;
+          return;
+        }
+      }
+      requestAnimationFrame(step);
+    })();
   }
 
   function update() {
@@ -61,6 +85,7 @@
   function onScroll() {
     clearTimeout(settle);
     settle = setTimeout(function () {
+      if (pending > 0) return;  // our own scroll, not the reader's swipe
       var w = track.clientWidth;
       if (!w) return;
       var i = Math.round(track.scrollLeft / w);
@@ -90,7 +115,7 @@
       goTo(startIndex(), false);
 
       track.addEventListener('scroll', onScroll, { passive: true });
-      window.addEventListener('resize', function () { goTo(current, false); });
+      window.addEventListener('resize', function () { seek(false); });
       document.addEventListener('keydown', function (ev) {
         if (ev.key === 'ArrowRight' || ev.key === 'PageDown' || ev.key === ' ') {
           ev.preventDefault(); goTo(current + 1, true);
@@ -98,6 +123,12 @@
           ev.preventDefault(); goTo(current - 1, true);
         } else if (ev.key === 'Home') { goTo(0, true); }
         else if (ev.key === 'End') { goTo(total - 1, true); }
+      });
+      /* Someone pasted a different estrofe into the address bar, or used
+         back/forward: follow it without reloading. */
+      window.addEventListener('hashchange', function () {
+        var i = numbers.indexOf(Number((location.hash || '').slice(1)));
+        if (i !== -1 && i !== current) goTo(i, true);
       });
       document.querySelector('.nav-zone.prev').addEventListener('click', function () { goTo(current - 1, true); });
       document.querySelector('.nav-zone.next').addEventListener('click', function () { goTo(current + 1, true); });

@@ -1,0 +1,54 @@
+{
+ "cantos": [
+  {
+   "canto": 1,
+   "roman": "I",
+   "count": 106
+  },
+  {
+   "canto": 2,
+   "roman": "II",
+   "count": 113
+  },
+  {
+   "canto": 3,
+   "roman": "III",
+   "count": 143
+  },
+  {
+   "canto": 4,
+   "roman": "IV",
+   "count": 104
+  },
+  {
+   "canto": 5,
+   "roman": "V",
+   "count": 100
+  },
+  {
+   "canto": 6,
+   "roman": "VI",
+   "count": 99
+  },
+  {
+   "canto": 7,
+   "roman": "VII",
+   "count": 87
+  },
+  {
+   "canto": 8,
+   "roman": "VIII",
+   "count": 99
+  },
+  {
+   "canto": 9,
+   "roman": "IX",
+   "count": 95
+  },
+  {
+   "canto": 10,
+   "roman": "X",
+   "count": 156
+  }
+ ]
+}
