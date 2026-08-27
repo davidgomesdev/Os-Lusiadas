@@ -31,22 +31,50 @@ a { color: var(--accent); }
 
 /* ---------- index ---------- */
 .home { max-width: 46rem; margin: 0 auto; padding: 3rem 1.25rem 4rem; }
-.home h1 { font-size: clamp(2.2rem, 8vw, 3.4rem); margin: 0; letter-spacing: .02em; }
-.home .author { color: var(--ink-soft); font-style: italic; margin: .4rem 0 2rem; }
+.masthead { display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; }
+/* Sized to the h1's own line, so the portrait never makes the masthead taller.
+   Height is explicit and overflow clipped so a failed load falls back to an
+   empty circle rather than a block of alt text that reflows the whole header. */
+.portrait {
+  flex: none; width: clamp(2.6rem, 9vw, 3.8rem); height: clamp(2.6rem, 9vw, 3.8rem);
+  overflow: hidden; object-fit: cover; object-position: 50% 18%;
+  border-radius: 50%; border: 1px solid var(--rule); box-shadow: var(--shadow);
+  filter: saturate(.9);
+}
+.home h1 { font-size: clamp(2.2rem, 8vw, 3.4rem); margin: 0; letter-spacing: .02em; line-height: 1.05; }
+.home .author { color: var(--ink-soft); font-style: italic; margin: .3rem 0 0; font-size: .9rem; }
+.credit { margin: 2.5rem 0 0; color: var(--ink-soft); font-size: .72rem; text-align: center; }
 .resume {
   display: block; padding: .9rem 1.1rem; margin-bottom: 2rem; border-radius: .6rem;
   background: var(--accent); color: #fff; text-decoration: none; box-shadow: var(--shadow);
 }
+/* Without this the display above would defeat the hidden attribute, and the
+   link would show even for a reader who has never opened a canto. */
+.resume[hidden] { display: none; }
 .resume small { display: block; opacity: .85; }
-.cantos { list-style: none; padding: 0; margin: 0; display: grid; gap: .75rem; }
+/* minmax(0,1fr) stops the grid column from sizing to the full incipit, which
+   would push the row wider than the viewport instead of truncating it. */
+.cantos {
+  list-style: none; padding: 0; margin: 0; display: grid; gap: .75rem;
+  grid-template-columns: minmax(0, 1fr);
+}
+.cantos li { min-width: 0; }
 .cantos a {
-  display: flex; align-items: baseline; gap: .9rem; padding: 1rem 1.1rem;
+  display: flex; align-items: baseline; gap: .9rem; padding: 1rem 1.1rem; min-width: 0;
   background: var(--bg-card); border: 1px solid var(--rule); border-radius: .6rem;
   text-decoration: none; color: inherit; box-shadow: var(--shadow);
 }
 .cantos a:hover { border-color: var(--accent); }
-.cantos .num { font-size: 1.35rem; color: var(--accent); min-width: 2.6rem; }
-.cantos .meta { margin-left: auto; color: var(--ink-soft); font-size: .85rem; }
+.cantos .num {
+  font-size: 1.5rem; color: var(--accent); min-width: 3.2rem; flex: none;
+  font-variant-caps: small-caps; letter-spacing: .04em;
+}
+/* The opening verse identifies the canto far better than repeating its number. */
+.cantos .incipit {
+  font-style: italic; color: var(--ink-soft); min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.cantos .meta { margin-left: auto; padding-left: .8rem; color: var(--ink-soft); font-size: .85rem; flex: none; }
 
 /* ---------- reader ---------- */
 .reader { display: flex; flex-direction: column; height: 100dvh; overflow: hidden; }
@@ -56,7 +84,15 @@ a { color: var(--accent); }
   font-size: .82rem; color: var(--ink-soft); flex: none;
 }
 .bar a { text-decoration: none; }
-.bar .title { font-variant-caps: small-caps; letter-spacing: .06em; }
+.bar .mark {
+  flex: none; color: var(--accent); font-size: .95rem; letter-spacing: .08em;
+  font-variant-caps: small-caps; border-left: 1px solid var(--rule); padding-left: .75rem;
+}
+.bar .incipit {
+  font-style: italic; min-width: 0; overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap;
+}
+@media (max-width: 30rem) { .bar .incipit { display: none; } }
 .bar .pos { margin-left: auto; font-variant-numeric: tabular-nums; }
 .bar button {
   font: inherit; color: inherit; background: none; cursor: pointer;

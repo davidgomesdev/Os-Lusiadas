@@ -9,31 +9,37 @@
 </head>
 <body>
 <main class="home">
-  <h1>Os Lusíadas</h1>
-  <p class="author">Luís de Camões &middot; 1572 &middot; 1102 estrofes</p>
+  <div class="masthead">
+    <img class="portrait" src="assets/camoes.jpg" width="96" height="96" alt="Retrato de Luís de Camões, por Fernão Gomes" title="Luís de Camões, por Fernão Gomes (séc. XVI)">
+    <div>
+      <h1>Os Lusíadas</h1>
+      <p class="author">Luís de Camões &middot; 1572 &middot; 1102 estrofes</p>
+    </div>
+  </div>
   <a class="resume" id="resume" href="#" hidden>Continuar a leitura<small id="resume-where"></small></a>
   <ul class="cantos">
-  <li><a href="canto-1.html"><span class="num">I</span><span>Canto I</span><span class="meta">106 estrofes</span></a></li>
-  <li><a href="canto-2.html"><span class="num">II</span><span>Canto II</span><span class="meta">113 estrofes</span></a></li>
-  <li><a href="canto-3.html"><span class="num">III</span><span>Canto III</span><span class="meta">143 estrofes</span></a></li>
-  <li><a href="canto-4.html"><span class="num">IV</span><span>Canto IV</span><span class="meta">104 estrofes</span></a></li>
-  <li><a href="canto-5.html"><span class="num">V</span><span>Canto V</span><span class="meta">100 estrofes</span></a></li>
-  <li><a href="canto-6.html"><span class="num">VI</span><span>Canto VI</span><span class="meta">99 estrofes</span></a></li>
-  <li><a href="canto-7.html"><span class="num">VII</span><span>Canto VII</span><span class="meta">87 estrofes</span></a></li>
-  <li><a href="canto-8.html"><span class="num">VIII</span><span>Canto VIII</span><span class="meta">99 estrofes</span></a></li>
-  <li><a href="canto-9.html"><span class="num">IX</span><span>Canto IX</span><span class="meta">95 estrofes</span></a></li>
-  <li><a href="canto-10.html"><span class="num">X</span><span>Canto X</span><span class="meta">156 estrofes</span></a></li>
+  <li><a href="canto-1.html"><span class="num" aria-label="Canto I">I</span><span class="incipit">As armas e os barões assinalados&hellip;</span><span class="meta">106 estrofes</span></a></li>
+  <li><a href="canto-2.html"><span class="num" aria-label="Canto II">II</span><span class="incipit">Já neste tempo o lúcido Planeta&hellip;</span><span class="meta">113 estrofes</span></a></li>
+  <li><a href="canto-3.html"><span class="num" aria-label="Canto III">III</span><span class="incipit">Agora tu, Calíope, me ensina&hellip;</span><span class="meta">143 estrofes</span></a></li>
+  <li><a href="canto-4.html"><span class="num" aria-label="Canto IV">IV</span><span class="incipit">Depois de procelosa tempestade&hellip;</span><span class="meta">104 estrofes</span></a></li>
+  <li><a href="canto-5.html"><span class="num" aria-label="Canto V">V</span><span class="incipit">Estas sentenças tais o velho honrado&hellip;</span><span class="meta">100 estrofes</span></a></li>
+  <li><a href="canto-6.html"><span class="num" aria-label="Canto VI">VI</span><span class="incipit">Não sabia em que modo festejasse&hellip;</span><span class="meta">99 estrofes</span></a></li>
+  <li><a href="canto-7.html"><span class="num" aria-label="Canto VII">VII</span><span class="incipit">Já se viam chegados junto à terra&hellip;</span><span class="meta">87 estrofes</span></a></li>
+  <li><a href="canto-8.html"><span class="num" aria-label="Canto VIII">VIII</span><span class="incipit">Na primeira figura se detinha&hellip;</span><span class="meta">99 estrofes</span></a></li>
+  <li><a href="canto-9.html"><span class="num" aria-label="Canto IX">IX</span><span class="incipit">Tiveram longamente na cidade&hellip;</span><span class="meta">95 estrofes</span></a></li>
+  <li><a href="canto-10.html"><span class="num" aria-label="Canto X">X</span><span class="incipit">Mas já o claro amador da Larisséia&hellip;</span><span class="meta">156 estrofes</span></a></li>
   </ul>
+  <p class="credit">Retrato de Camões por Fernão Gomes (séc.&nbsp;XVI), via Wikimedia Commons &mdash; domínio público.</p>
 </main>
 <script>
 (function () {
+  var link = document.getElementById('resume');
   var raw;
   try { raw = localStorage.getItem('lusiadas:last'); } catch (e) { return; }
-  if (!raw) return;
+  if (!raw) return;                     /* nunca leu nada: fica escondido */
   try {
     var last = JSON.parse(raw);
-    if (!last || !last.canto) return;
-    var link = document.getElementById('resume');
+    if (!last || !last.canto || !last.estrofe) return;
     link.href = 'canto-' + last.canto + '.html#' + last.estrofe;
     document.getElementById('resume-where').textContent =
       'Canto ' + last.roman + ', estrofe ' + last.estrofe;

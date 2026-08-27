@@ -85,6 +85,12 @@ Two subtleties that were bugs once and will be again if removed:
   parks the reader on the first estrofe. It retries until `scrollLeft` lands.
 - **`onScroll` ignores events while `pending > 0`.** Otherwise a programmatic
   scroll is read back as a user swipe and fights the jump it was told to make.
+- **`.resume[hidden]` must stay in the CSS.** `.resume` sets `display: block`,
+  which on its own overrides the `hidden` attribute, so the home page offers
+  "Continuar a leitura" to someone who has never opened a canto.
+
+Estrofe cards carry only `Estrofe <n>`. The canto is named once per page, in
+the header, so repeating it on all 156 cards was noise.
 
 The checkpoint lives in `localStorage` under `lusiadas:canto:<n>` (per canto)
 and `lusiadas:last` (for the home page's "Continuar a leitura"). Every read and
@@ -92,6 +98,24 @@ write is wrapped in try/catch — private browsing throws rather than returning
 null. The URL hash tracks the current estrofe via `replaceState`, so sharing a
 link works without flooding session history; a `hashchange` listener follows a
 pasted or back/forward hash.
+
+## How the cantos are labelled
+
+Neither page repeats "Canto I" beside a bare roman numeral. `build_site.py`
+reads the first verse of estrofe 1 out of `docs/data/canto-<n>.json` and uses it
+as the canto's caption: the index rows are numeral + opening verse + count, and
+the reader header is numeral + opening verse (dropped under 30rem). The numeral
+carries an `aria-label="Canto <roman>"`, so the word survives for screen readers
+without being drawn twice.
+
+This means the index depends on the scraped JSON for more than counts. With no
+data the caption falls back to "por recolher" rather than breaking the build.
+
+The truncation is load-bearing: `.cantos` needs `grid-template-columns:
+minmax(0, 1fr)` and the flex chain needs `min-width: 0`, or the grid column
+sizes itself to the full un-truncated verse and the page scrolls sideways on a
+phone. `.portrait` is given an explicit height for the same reason — a failed
+load would otherwise reflow the masthead around a block of alt text.
 
 ## Working on this
 
