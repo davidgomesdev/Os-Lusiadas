@@ -58,47 +58,81 @@ def fetch(url, retries=4, delay=1.0):
     raise RuntimeError(f"failed to fetch {url}: {last}")
 
 
-class Collector(HTMLParser):
-    """Collects hrefs and per-block text from a page."""
+class EstrofeParser(HTMLParser):
+    """Pulls the verse lines out of <div class="uk-panel ... estrofe">.
 
-    SKIP = {"script", "style", "head", "title", "noscript"}
+    The panel opens with a <div class="uk-panel-badge ...">N</div> holding the
+    estrofe number; the verses follow, separated by <br>.
+    """
 
     def __init__(self):
         super().__init__(convert_charrefs=True)
-        self.hrefs = []
-        self.blocks = []          # list of (tag, [lines])
-        self._stack = []          # open tags we are accumulating text for
-        self._skip_depth = 0
+        self.parts = []
+        self._depth = 0      # nesting depth inside the estrofe panel (0 = outside)
+        self._skip = 0       # nesting depth inside the badge (0 = not skipping)
 
     def handle_starttag(self, tag, attrs):
-        if tag in self.SKIP:
-            self._skip_depth += 1
-            return
-        if tag == "a":
-            for k, v in attrs:
-                if k == "href" and v:
-                    self.hrefs.append(v)
-        if tag in ("p", "div", "blockquote", "pre", "td", "li", "section", "article"):
-            self._stack.append([tag, []])
-        if tag == "br":
-            for frame in self._stack:
-                frame[1].append("\n")
+        classes = dict(attrs).get("class", "").split()
+        if self._depth:
+            if tag == "div":
+                self._depth += 1
+                if self._skip or "uk-panel-badge" in classes:
+                    self._skip += 1
+            elif self._skip:
+                pass
+            elif tag == "br":
+                self.parts.append("\n")
+        elif tag == "div" and "estrofe" in classes:
+            self._depth = 1
 
     def handle_endtag(self, tag):
-        if tag in self.SKIP:
-            self._skip_depth = max(0, self._skip_depth - 1)
-            return
-        for i in range(len(self._stack) - 1, -1, -1):
-            if self._stack[i][0] == tag:
-                frame = self._stack.pop(i)
-                self.blocks.append((frame[0], "".join(frame[1])))
-                break
+        if self._depth and tag == "div":
+            if self._skip:
+                self._skip -= 1
+            self._depth -= 1
 
     def handle_data(self, data):
-        if self._skip_depth:
-            return
-        for frame in self._stack:
-            frame[1].append(data)
+        if self._depth and not self._skip:
+            self.parts.append(data)
+
+
+class DropdownParser(HTMLParser):
+    """Collects the estrofe numbers from the "Estâncias / Estrofes" dropdown.
+
+    Its links are relative ("./" for the first, "<n>.html" after that), so the
+    number is read from the link text rather than the href.
+    """
+
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.numbers = set()
+        self._in_dropdown = 0
+        self._in_link = False
+        self._text = []
+
+    def handle_starttag(self, tag, attrs):
+        classes = dict(attrs).get("class", "").split()
+        if tag == "div":
+            if self._in_dropdown:
+                self._in_dropdown += 1
+            elif "uk-dropdown" in classes:
+                self._in_dropdown = 1
+        elif tag == "a" and self._in_dropdown:
+            self._in_link = True
+            self._text = []
+
+    def handle_endtag(self, tag):
+        if tag == "div" and self._in_dropdown:
+            self._in_dropdown -= 1
+        elif tag == "a" and self._in_link:
+            self._in_link = False
+            label = "".join(self._text).strip()
+            if label.isdigit():
+                self.numbers.add(int(label))
+
+    def handle_data(self, data):
+        if self._in_link:
+            self._text.append(data)
 
 
 def clean_lines(raw):
@@ -108,54 +142,32 @@ def clean_lines(raw):
     return [ln for ln in lines if ln]
 
 
-def looks_like_estrofe(lines):
-    """An estrofe is an oitava: 8 verse lines of roughly comparable length."""
-    if not 6 <= len(lines) <= 10:
-        return False
-    if any(len(ln) > 120 for ln in lines):
-        return False
-    # Reject navigation blocks: mostly very short, digit-only or single-word items.
-    short = sum(1 for ln in lines if len(ln) < 12)
-    return short <= len(lines) // 2
-
-
 def extract_estrofe(html):
-    """Pull the 8 verse lines of an estrofe out of a page."""
-    c = Collector()
-    c.feed(html)
-    candidates = []
-    for tag, raw in c.blocks:
-        lines = clean_lines(raw)
-        if looks_like_estrofe(lines):
-            # Prefer the innermost (smallest) matching block.
-            candidates.append((len("".join(lines)), tag, lines))
-    if not candidates:
-        return None
-    candidates.sort(key=lambda t: t[0])
-    return candidates[0][2]
+    """Return the verse lines of an estrofe page."""
+    p = EstrofeParser()
+    p.feed(html)
+    return clean_lines("".join(p.parts)) or None
+
+
+def estrofe_url(roman, num):
+    """The first estrofe lives at /<roman>/ ; the rest at /<roman>/<n>.html"""
+    return f"{BASE}/{roman}/" if num == 1 else f"{BASE}/{roman}/{num}.html"
 
 
 def discover_estrofes(canto_roman):
-    """Find every estrofe number of a canto.
+    """Find every estrofe number of a canto from the dropdown links.
 
-    The "Estâncias / Estrofes" button opens a div of links; the page is
-    server-side rendered, so those links are present in the HTML we fetch.
+    The page is server-side rendered, so the links the "Estâncias / Estrofes"
+    button reveals are already in the HTML we fetch.
     """
-    html = fetch(f"{BASE}/{canto_roman}/1.html")
-    c = Collector()
-    c.feed(html)
-    pat = re.compile(rf"(?:^|/){re.escape(canto_roman)}/(\d+)\.html$", re.I)
-    nums = set()
-    for href in c.hrefs:
-        m = pat.search(href.split("?")[0].split("#")[0])
-        if m:
-            nums.add(int(m.group(1)))
-    if not nums:
+    p = DropdownParser()
+    p.feed(fetch(estrofe_url(canto_roman, 1)))
+    if not p.numbers:
         raise RuntimeError(
             f"no estrofe links found for canto {canto_roman.upper()}; "
             "the site markup may have changed"
         )
-    return sorted(nums)
+    return sorted(p.numbers)
 
 
 def scrape_canto(idx, roman, delay):
@@ -167,7 +179,7 @@ def scrape_canto(idx, roman, delay):
     out_dir.mkdir(parents=True, exist_ok=True)
     estrofes = []
     for num in numbers:
-        url = f"{BASE}/{roman}/{num}.html"
+        url = estrofe_url(roman, num)
         lines = extract_estrofe(fetch(url))
         if not lines:
             print(f"  !! could not extract text from {url}", file=sys.stderr)
