@@ -29,6 +29,8 @@ HEAD = """<!doctype html>
 <title>{title}</title>
 <meta name="description" content="{desc}">
 <link rel="stylesheet" href="{prefix}assets/reader.css">
+<script>try{{var t=localStorage.getItem('lusiadas:theme');if(t&&t!=='auto')document.documentElement.dataset.theme=t;}}catch(e){{}}</script>
+<script src="{prefix}assets/theme.js" defer></script>
 </head>
 """
 
@@ -38,6 +40,7 @@ CANTO_BODY = """<body class="reader" data-canto="{n}" data-roman="{roman}">
   <span class="mark" aria-label="Canto {roman}">{roman}</span>
   <span class="incipit">{incipit}</span>
   <button id="jump" type="button">Ir para&hellip;</button>
+  <button class="theme" id="theme" type="button">Sistema</button>
   <span class="pos" id="pos">&hellip;</span>
 </header>
 <div class="progress"><i id="bar"></i></div>
@@ -106,6 +109,7 @@ def build_index(info):
         prefix="",
     ) + f"""<body>
 <main class="home">
+  <button class="theme" id="theme" type="button">Sistema</button>
   <div class="masthead">
     {PORTRAIT}
     <div>

@@ -1,4 +1,9 @@
+/* Three themes: the paper default, a plain white one, and the dark one.
+   The dark block is written twice on purpose — once for "the system says dark
+   and the reader has not chosen otherwise", once for an explicit choice — so a
+   [data-theme] pick always wins over prefers-color-scheme. */
 :root {
+  color-scheme: light;
   --bg: #f6f1e4;
   --bg-card: #fffdf7;
   --ink: #2b2417;
@@ -7,8 +12,20 @@
   --accent: #8c2f21;
   --shadow: 0 1px 2px rgba(43, 36, 23, .06), 0 8px 24px rgba(43, 36, 23, .08);
 }
+/* Plain white: same ink, the paper tint taken out. */
+:root[data-theme="white"] {
+  color-scheme: light;
+  --bg: #ffffff;
+  --bg-card: #ffffff;
+  --ink: #23201b;
+  --ink-soft: #6f6a61;
+  --rule: #e3e0d9;
+  --accent: #8c2f21;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .04), 0 8px 24px rgba(0, 0, 0, .06);
+}
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="paper"]):not([data-theme="white"]) {
+    color-scheme: dark;
     --bg: #14110c;
     --bg-card: #1e1a13;
     --ink: #ece3d2;
@@ -17,6 +34,16 @@
     --accent: #e0734f;
     --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px rgba(0, 0, 0, .35);
   }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #14110c;
+  --bg-card: #1e1a13;
+  --ink: #ece3d2;
+  --ink-soft: #a2937a;
+  --rule: #3a3226;
+  --accent: #e0734f;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px rgba(0, 0, 0, .35);
 }
 * { box-sizing: border-box; }
 html, body { height: 100%; }
@@ -133,3 +160,14 @@ a { color: var(--accent); }
 .nav-zone.next { right: 0; }
 .msg { padding: 2rem 1.25rem; text-align: center; color: var(--ink-soft); }
 .msg code { color: var(--ink); }
+
+/* ---------- theme switch ---------- */
+.theme {
+  font: inherit; color: inherit; background: none; cursor: pointer;
+  border: 1px solid var(--rule); border-radius: .35rem; padding: .2rem .55rem;
+  font-size: .78rem; line-height: 1.6; white-space: nowrap;
+}
+.theme:hover { border-color: var(--accent); color: var(--accent); }
+.bar .theme { flex: none; }
+.home .theme { position: absolute; top: 1rem; right: 1.25rem; }
+.home { position: relative; }

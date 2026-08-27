@@ -47,7 +47,8 @@ Em *Settings → Pages*, escolhe **GitHub Actions** como origem. Cada push para
   de repetir «Canto I» ao lado do próprio número.
 - O endereço acompanha a estrofe (`canto-1.html#17`), por isso dá para partilhar
   uma estrofe específica.
-- Tema claro/escuro conforme o sistema.
+- Quatro temas, no botão do canto: *Sistema* (segue o aparelho), *Papel*,
+  *Branco* e *Escuro*. A escolha fica guardada e vale para todas as páginas.
 
 ## Créditos da imagem
 

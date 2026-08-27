@@ -99,6 +99,28 @@ null. The URL hash tracks the current estrofe via `replaceState`, so sharing a
 link works without flooding session history; a `hashchange` listener follows a
 pasted or back/forward hash.
 
+## How theming works
+
+`assets/theme.js` cycles four modes — auto, paper, white, dark — and stores the
+pick under `lusiadas:theme`. Anything other than auto is written to
+`document.documentElement.dataset.theme`, and the CSS is layered so an explicit
+pick beats `prefers-color-scheme`:
+
+- `:root` holds the paper (light) tokens.
+- `:root[data-theme="white"]` and `:root[data-theme="dark"]` are explicit picks.
+- the dark `@media` block is guarded by
+  `:not([data-theme="paper"]):not([data-theme="white"])`, so choosing a light
+  theme on a dark-mode device actually sticks.
+
+The dark tokens are therefore written twice, deliberately: once for the media
+query, once for the explicit pick. Editing one and not the other is the bug to
+watch for.
+
+The stored theme is applied by an inline `<script>` in `<head>`, before the
+stylesheet paints — moving it into `theme.js` (deferred) brings back a flash of
+the wrong theme on every load. `theme.js` only wires the button, so a page
+without one still renders in the saved theme.
+
 ## How the cantos are labelled
 
 Neither page repeats "Canto I" beside a bare roman numeral. `build_site.py`
