@@ -47,4 +47,39 @@ Em *Settings → Pages*, escolhe **GitHub Actions** como origem. Cada push para
   uma estrofe específica.
 - Tema claro/escuro conforme o sistema.
 
+## Fidelidade ao texto de origem
+
+O objectivo é arquivar o que a fonte publica, e não emendá-la. Nada é
+reescrito, completado ou removido a partir de outra edição: os ficheiros em
+`texts/` são o que a página serviu.
+
+`python3 scripts/verify.py` confere a recolha — contagens por canto contra as
+edições correntes, numeração contígua, e estrofes que não tenham oito versos.
+Passa com 1102 estrofes, com cinco a assinalar.
+
+### As cinco estrofes que não têm oito versos
+
+Uma estrofe de *Os Lusíadas* é uma oitava. Cinco fogem disso, e em nenhum caso
+por falha do scraper — todas reproduzem a página de origem tal como ela está.
+
+**Quatro trazem uma legenda editorial dentro do painel dos versos.** Os oito
+versos estão lá; o que sobra é uma anotação do site, sem marcação nenhuma que a
+distinga do verso — mesmo bloco, separada apenas por `<br>`. Por isso não há
+maneira fiável de a separar automaticamente, e fica onde a fonte a pôs:
+
+| Estrofe | Versos | Legenda | Posição |
+| --- | --- | --- | --- |
+| I.53 | 8 | «Informações. A Ilha de Moçambique.» | depois |
+| I.58 | 8 | «Prepara-se a Armada para Receber a…» | depois |
+| VIII.61 | 8 | «Fala do Samorim ao Gama» | antes |
+| VIII.64 | 8 | «Resposta do Gama» | antes |
+
+**Uma está mesmo incompleta na origem.** A II.19 tem sete versos em
+oslusiadas.org — falta-lhe um. Não foi preenchido: escrevê-lo a partir de outra
+edição seria inventar dados que a fonte não deu.
+
+Se algum dia se quiser separar as legendas do verso, o caminho honesto é uma
+tabela explícita para estas quatro (a posição de cada uma está acima), e não
+uma heurística a adivinhar sobre as 1102.
+
 O texto é de 1572 e está em domínio público.
