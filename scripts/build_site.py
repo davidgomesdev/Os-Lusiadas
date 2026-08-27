@@ -16,7 +16,7 @@ DOCS = ROOT / "docs"
 ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"]
 
 PORTRAIT = (
-    '<img class="portrait" src="assets/camoes.jpg" width="96" height="96" '
+    '<img class="portrait" src="assets/camoes.jpg" width="256" height="286" '
     'alt="Retrato de Luís de Camões, por Fernão Gomes" '
     'title="Luís de Camões, por Fernão Gomes (séc. XVI)">'
 )
